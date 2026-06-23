@@ -40,12 +40,7 @@ application-local.yml
 *.env.local
 settings.xml
 
-# ---------- 上传文件（保留 .gitkeep 维持目录结构）----------
-uploads/
-!uploads/house/.gitkeep
-
 # ---------- 调试 & 计划文件 ----------
-Debug/
 Plan/
 
 # ---------- 文档 ----------
