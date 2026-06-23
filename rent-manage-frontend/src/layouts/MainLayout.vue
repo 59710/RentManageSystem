@@ -1,99 +1,141 @@
 <template>
   <div class="main-layout">
     <!-- 顶部导航栏 -->
-    <header class="navbar glass-effect" :class="{ 'scrolled': isScrolled }">
+    <header class="navbar" :class="{ 'is-scrolled': isScrolled }">
       <div class="navbar-inner">
         <!-- Logo -->
         <router-link to="/" class="logo">
-          <span class="logo-icon">🏠</span>
-          <span class="logo-text gradient-text">青年品质租房</span>
+          <span class="logo-mark">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <rect width="28" height="28" rx="8" fill="url(#logo-grad)"/>
+              <path d="M14 6L6 12v10h6v-7h4v7h6V12l-8-6z" fill="white" opacity="0.95"/>
+              <defs>
+                <linearGradient id="logo-grad" x1="0" y1="0" x2="28" y2="28">
+                  <stop stop-color="#f97316"/><stop offset="1" stop-color="#fb923c"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+          <span class="logo-text">青年品质租房</span>
         </router-link>
 
         <!-- 导航菜单 -->
         <nav class="nav-menu">
-          <router-link to="/home" class="nav-item" active-class="active">
-            <el-icon><HomeFilled /></el-icon>
+          <router-link to="/home" class="nav-item" active-class="is-active">
+            <el-icon :size="16"><HomeFilled /></el-icon>
             <span>首页</span>
           </router-link>
-          <router-link to="/house" class="nav-item" active-class="active">
-            <el-icon><OfficeBuilding /></el-icon>
+          <router-link to="/house" class="nav-item" active-class="is-active">
+            <el-icon :size="16"><OfficeBuilding /></el-icon>
             <span>找房</span>
           </router-link>
-          <!-- 我的订单（仅租客可见） -->
-          <router-link v-if="userStore.isLoggedIn && !userStore.isLandlord && !userStore.isAdmin" to="/tenant/orders" class="nav-item nav-tenant" active-class="active">
-            <el-icon><Tickets /></el-icon>
+
+          <!-- 租客：我的订单 -->
+          <router-link
+            v-if="userStore.isLoggedIn && !userStore.isLandlord && !userStore.isAdmin"
+            to="/tenant/orders"
+            class="nav-item nav-tenant"
+            active-class="is-active"
+          >
+            <el-icon :size="16"><Tickets /></el-icon>
             <span>我的订单</span>
           </router-link>
-          <!-- 房东专属菜单（仅房东可见） -->
+
+          <!-- 房东专属 -->
           <template v-if="userStore.isLandlord">
-            <router-link to="/landlord/publish" class="nav-item nav-landlord" active-class="active">
-              <el-icon><Plus /></el-icon>
+            <router-link to="/landlord/publish" class="nav-item nav-landlord" active-class="is-active">
+              <el-icon :size="16"><Plus /></el-icon>
               <span>发布房源</span>
             </router-link>
-            <router-link to="/landlord/houses" class="nav-item nav-landlord" active-class="active">
-              <el-icon><List /></el-icon>
+            <router-link to="/landlord/houses" class="nav-item nav-landlord" active-class="is-active">
+              <el-icon :size="16"><List /></el-icon>
               <span>我的房源</span>
             </router-link>
-            <router-link to="/landlord/orders" class="nav-item nav-landlord" active-class="active">
-              <el-icon><Bell /></el-icon>
+            <router-link to="/landlord/orders" class="nav-item nav-landlord" active-class="is-active">
+              <el-icon :size="16"><Bell /></el-icon>
               <span>订单管理</span>
-              <!-- 待确认订单角标 -->
-              <el-badge v-if="landlordPendingCount > 0" :value="landlordPendingCount" :max="99" class="nav-badge" />
+              <el-badge
+                v-if="landlordPendingCount > 0"
+                :value="landlordPendingCount"
+                :max="99"
+                class="nav-badge"
+              />
             </router-link>
           </template>
-          <!-- 管理员专属菜单 -->
+
+          <!-- 管理员专属 -->
           <template v-if="userStore.isAdmin">
-            <router-link to="/admin/audit" class="nav-item nav-admin" active-class="active">
-              <el-icon><Stamp /></el-icon>
+            <router-link to="/admin/audit" class="nav-item nav-admin" active-class="is-active">
+              <el-icon :size="16"><Stamp /></el-icon>
               <span>审核管理</span>
-              <el-badge v-if="pendingAuditCount > 0" :value="pendingAuditCount" :max="99" class="nav-badge" />
+              <el-badge
+                v-if="pendingAuditCount > 0"
+                :value="pendingAuditCount"
+                :max="99"
+                class="nav-badge"
+              />
             </router-link>
           </template>
         </nav>
 
         <!-- 右侧用户区 -->
         <div class="nav-right">
-          <template v-if="userStore.isLoggedIn">
-            <!-- 搜索框 -->
-            <el-input
+          <!-- 搜索框 -->
+          <div class="search-wrapper" :class="{ 'is-focused': searchFocused }">
+            <el-icon class="search-icon" :size="16"><Search /></el-icon>
+            <input
               v-model="searchKeyword"
+              type="text"
               placeholder="搜索房源..."
-              :prefix-icon="Search"
-              clearable
-              class="nav-search"
+              class="search-input"
+              @focus="searchFocused = true"
+              @blur="searchFocused = false"
               @keyup.enter="handleSearch"
             />
+            <button
+              v-if="searchKeyword"
+              class="search-clear"
+              @click="searchKeyword = ''"
+            >
+              <el-icon :size="12"><Close /></el-icon>
+            </button>
+          </div>
 
-            <!-- 用户头像 + 下拉 -->
-            <el-dropdown trigger="click" @command="handleCommand">
-              <div class="user-avatar">
-                <el-avatar :size="36" :style="{ backgroundColor: avatarColor }">
-                  {{ userStore.userInfo?.nickname?.charAt(0) || '?' }}
+          <!-- 已登录：用户下拉 -->
+          <template v-if="userStore.isLoggedIn">
+            <el-dropdown trigger="click" @command="handleCommand" popper-class="user-popper">
+              <div class="user-trigger">
+                <el-avatar :size="34" :style="{ backgroundColor: avatarColor }" class="user-avatar">
+                  {{ userStore.userInfo?.nickname?.charAt(0) || 'U' }}
                 </el-avatar>
                 <span class="user-name">{{ userStore.userInfo?.nickname || '用户' }}</span>
-                <el-icon class="arrow"><ArrowDown /></el-icon>
+                <el-icon class="chevron" :size="14"><ArrowDown /></el-icon>
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item disabled>
-                    <el-icon><User /></el-icon>
-                    {{ userStore.roleName }}
-                  </el-dropdown-item>
+                  <div class="popper-user-info">
+                    <el-avatar :size="40" :style="{ backgroundColor: avatarColor }">
+                      {{ userStore.userInfo?.nickname?.charAt(0) || 'U' }}
+                    </el-avatar>
+                    <div>
+                      <div class="popper-name">{{ userStore.userInfo?.nickname || '用户' }}</div>
+                      <div class="popper-role">{{ userStore.roleName }}</div>
+                    </div>
+                  </div>
                   <el-dropdown-item divided command="profile">
-                    <el-icon><Setting /></el-icon>
-                    个人设置
+                    <el-icon><Setting /></el-icon>个人设置
                   </el-dropdown-item>
-                  <el-dropdown-item command="logout" style="color: var(--color-danger)">
-                    <el-icon><SwitchButton /></el-icon>
-                    退出登录
+                  <el-dropdown-item command="logout" class="logout-item">
+                    <el-icon><SwitchButton /></el-icon>退出登录
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
           </template>
 
+          <!-- 未登录 -->
           <template v-else>
-            <el-button type="primary" round @click="$router.push('/login')">
+            <el-button type="primary" class="login-btn" @click="$router.push('/login')">
               登录 / 注册
             </el-button>
           </template>
@@ -104,7 +146,7 @@
     <!-- 主内容区 -->
     <main class="main-content">
       <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
+        <transition name="page-fade" mode="out-in">
           <component :is="Component" />
         </transition>
       </router-view>
@@ -112,7 +154,14 @@
 
     <!-- 页脚 -->
     <footer class="footer">
-      <p>&copy; 2026 青年品质租房管理系统 · 连梓祺 & 团队</p>
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="footer-logo-text">青年品质租房</span>
+          <span class="footer-dot">·</span>
+          <span class="footer-desc">为年轻人打造的高品质居住体验</span>
+        </div>
+        <p class="footer-copy">&copy; 2026 青年品质租房管理系统 · 连梓祺 & 团队</p>
+      </div>
     </footer>
   </div>
 </template>
@@ -134,97 +183,78 @@ import {
   Stamp,
   Tickets,
   Bell,
+  Close,
 } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-// 搜索关键词
+// 搜索
 const searchKeyword = ref('')
+const searchFocused = ref(false)
 
-// 待审核房源数量（管理员角标）
+// 角标数量
 const pendingAuditCount = ref(0)
-
-// 待确认订单数量（房东角标）
 const landlordPendingCount = ref(0)
 
-// 滚动状态（用于导航栏样式变化）
+// 滚动状态
 const isScrolled = ref(false)
 
-// 头像颜色
+// 头像颜色（基于用户 ID）
 const avatarColor = computed(() => {
-  const colors = ['#ff6b35', '#4facfe', '#2ecc71', '#9b59b6', '#f39c12']
-  const idx =
-    (userStore.userInfo?.userId?.charCodeAt(0) || 0) % colors.length
+  const colors = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899']
+  const idx = (userStore.userInfo?.userId?.charCodeAt(0) || 0) % colors.length
   return colors[idx]
 })
 
 function handleSearch() {
   if (searchKeyword.value.trim()) {
-    router.push({
-      path: '/house',
-      query: { keyword: searchKeyword.value.trim() },
-    })
+    router.push({ path: '/house', query: { keyword: searchKeyword.value.trim() } })
   }
 }
 
 async function handleCommand(command: string) {
   if (command === 'logout') {
     try {
-      await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-        confirmButtonText: '确定',
+      await ElMessageBox.confirm('确定要退出登录吗？', '退出确认', {
+        confirmButtonText: '确定退出',
         cancelButtonText: '取消',
         type: 'warning',
       })
       userStore.logout()
       router.push({ name: 'Login' })
-    } catch {
-      // 取消退出
-    }
+    } catch { /* 取消 */ }
   } else if (command === 'profile') {
     router.push({ name: 'UserProfile' })
   }
 }
 
-// 监听滚动事件
 function handleScroll() {
   isScrolled.value = window.scrollY > 20
 }
 
-// 获取待审核数量（仅管理员）
 async function fetchPendingAuditCount() {
   try {
     const { getPendingAuditList } = await import('@/api/house')
     const res = await getPendingAuditList({ page: 1, size: 1 })
     pendingAuditCount.value = res.total || 0
-  } catch {
-    // 静默失败，不影响导航使用
-  }
+  } catch { /* 静默 */ }
 }
 
-// 获取房东待确认订单数量（仅房东）
 async function fetchLandlordPendingCount() {
   try {
     const { getReceivedOrders } = await import('@/api/order')
     const res = await getReceivedOrders(1, 100)
     const list = res.records || res.list || []
     landlordPendingCount.value = list.filter((o: any) => o.status === 0).length
-  } catch {
-    // 静默失败
-  }
+  } catch { /* 静默 */ }
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-  // 管理员自动获取待审核数量
-  if (userStore.isAdmin) {
-    fetchPendingAuditCount()
-  }
-  // 房东自动获取待确认订单数
-  if (userStore.isLandlord) {
-    fetchLandlordPendingCount()
-  }
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  if (userStore.isAdmin) fetchPendingAuditCount()
+  if (userStore.isLandlord) fetchLandlordPendingCount()
 })
 
 onUnmounted(() => {
@@ -246,135 +276,129 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   z-index: 1000;
+  height: 60px;
   transition: all var(--transition-normal);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border-bottom: 1px solid transparent;
 
-  &.scrolled {
-    background: rgba(255, 255, 255, 0.92) !important;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+  &.is-scrolled {
+    background: rgba(255, 255, 255, 0.88);
     border-bottom-color: var(--color-border-light);
+    box-shadow: 0 1px 0 var(--color-border-light), 0 4px 24px rgba(0, 0, 0, 0.04);
   }
 }
 
 .navbar-inner {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
-  height: 64px;
+  padding: 0 28px;
+  height: 60px;
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 8px;
 }
 
 // Logo
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  text-decoration: none;
+  gap: 10px;
   flex-shrink: 0;
-  font-size: 20px;
-  font-weight: 700;
+  margin-right: 8px;
 
-  .logo-icon {
-    font-size: 28px;
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
   }
 
   .logo-text {
-    letter-spacing: -0.5px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
   }
 
-  &:hover .logo-text {
-    opacity: 0.85;
+  &:hover {
+    .logo-text { color: var(--color-primary); }
+    .logo-mark { transform: scale(1.05); }
+    .logo-mark { transition: transform var(--transition-fast); }
   }
 }
 
 // 导航菜单
 .nav-menu {
   display: flex;
-  gap: 4px;
-  margin-left: 16px;
+  gap: 2px;
+  flex: 1;
 }
 
 .nav-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
   color: var(--color-text-secondary);
   font-weight: 500;
   font-size: 14px;
   transition: all var(--transition-fast);
+  position: relative;
+  white-space: nowrap;
 
   &:hover {
-    color: var(--color-primary);
-    background: var(--color-primary-bg);
+    color: var(--color-text);
+    background: var(--color-bg);
   }
 
-  &.active {
+  &.is-active {
     color: var(--color-primary);
     background: var(--color-primary-bg);
     font-weight: 600;
   }
 
+  // 房东专属样式
   &.nav-landlord {
-    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,154,86,0.08));
-
-    &:hover {
-      background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,154,86,0.15));
-      color: var(--color-primary);
-    }
-
-    &.active {
-      background: linear-gradient(135deg, var(--color-primary), #ff9a56) !important;
-      color: #fff !important;
+    &.is-active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
 
       .el-icon { color: #fff; }
     }
   }
 
-  // 租客订单菜单
+  // 租客订单样式
   &.nav-tenant {
-    background: linear-gradient(135deg, rgba(79,172,254,0.08), rgba(0,242,254,0.06));
-
-    &:hover {
-      background: linear-gradient(135deg, rgba(79,172,254,0.15), rgba(0,242,254,0.12));
-      color: #4facfe;
-    }
-
-    &.active {
-      background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
-      color: #fff !important;
+    &.is-active {
+      color: #fff;
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
 
       .el-icon { color: #fff; }
     }
   }
 
-  // 管理员审核菜单
+  // 管理员样式
   &.nav-admin {
-    background: linear-gradient(135deg, rgba(231,76,60,0.06), rgba(243,156,18,0.08));
-
-    &:hover {
-      background: linear-gradient(135deg, rgba(231,76,60,0.12), rgba(243,156,18,0.14));
-      color: #e74c3c;
-    }
-
-    &.active {
-      background: linear-gradient(135deg, #e74c3c, #f39c12) !important;
-      color: #fff !important;
+    &.is-active {
+      color: #fff;
+      background: linear-gradient(135deg, #ef4444, #f59e0b);
 
       .el-icon { color: #fff; }
     }
   }
 
   .nav-badge {
-    margin-left: 4px;
+    margin-left: 2px;
 
     :deep(.el-badge__content) {
       font-size: 10px;
-      transform: scale(0.85);
+      height: 16px;
+      line-height: 16px;
+      padding: 0 5px;
+      transform: scale(0.88);
     }
   }
 }
@@ -384,75 +408,232 @@ onUnmounted(() => {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
-.nav-search {
+// 搜索框
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--color-bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
   width: 200px;
-  transition: width var(--transition-normal);
 
-  &:focus-within {
-    width: 260px;
+  &:hover {
+    background: #fff;
+    border-color: var(--color-border-light);
+  }
+
+  &.is-focused {
+    background: #fff;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-bg);
+    width: 240px;
+  }
+
+  .search-icon {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  .search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--color-text);
+    width: 100%;
+    font-family: inherit;
+
+    &::placeholder {
+      color: var(--color-text-muted);
+      font-size: 13px;
+    }
+  }
+
+  .search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: none;
+    background: var(--color-border-light);
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+
+    &:hover {
+      background: var(--color-border);
+      color: var(--color-text-secondary);
+    }
   }
 }
 
-.user-avatar {
+// 用户下拉触发
+.user-trigger {
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 4px 10px 4px 4px;
-  border-radius: 9999px;
+  padding: 4px 12px 4px 4px;
+  border-radius: var(--radius-full);
   transition: background var(--transition-fast);
 
   &:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--color-bg);
+  }
+
+  .user-avatar {
+    flex-shrink: 0;
+    font-weight: 600;
   }
 
   .user-name {
     font-size: 14px;
     font-weight: 500;
-    max-width: 80px;
+    max-width: 72px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--color-text);
   }
 
-  .arrow {
-    font-size: 12px;
+  .chevron {
     color: var(--color-text-muted);
+    transition: transform var(--transition-fast);
+  }
+
+  &:hover .chevron {
+    transform: translateY(2px);
+  }
+}
+
+// 登录按钮
+.login-btn {
+  height: 38px !important;
+  padding: 0 22px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  border-radius: var(--radius-full) !important;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35) !important;
+    transform: translateY(-1px);
   }
 }
 
 // ==================== 主内容 ====================
 .main-content {
   flex: 1;
-  margin-top: 64px; // navbar 高度
-  min-height: calc(100vh - 64px - 60px);
+  margin-top: 60px;
+  min-height: calc(100vh - 60px - 72px);
 }
 
 // ==================== 页脚 ====================
 .footer {
-  text-align: center;
-  padding: 24px;
-  color: var(--color-text-muted);
-  font-size: 13px;
   border-top: 1px solid var(--color-border-light);
+  background: #fff;
 }
 
-// ==================== 过渡动画 ====================
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.fade-enter-from {
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+
+  .footer-logo-text {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .footer-dot {
+    color: var(--color-text-muted);
+  }
+}
+
+.footer-copy {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+// ==================== 页面过渡动画 ====================
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.page-fade-enter-from {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(6px);
 }
 
-.fade-leave-to {
+.page-fade-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-6px);
+}
+</style>
+
+<!-- 全局样式（下拉菜单弹出层，不受 scoped 限制） -->
+<style lang="scss">
+.user-popper {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--color-border-light) !important;
+  box-shadow: var(--shadow-xl) !important;
+  padding: 6px !important;
+  margin-top: 6px !important;
+
+  .popper-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px 12px;
+
+    .popper-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .popper-role {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+  }
+
+  .el-dropdown-menu__item {
+    border-radius: var(--radius-sm) !important;
+    padding: 9px 14px !important;
+    font-size: 14px;
+
+    &.logout-item {
+      color: var(--color-danger) !important;
+
+      &:hover {
+        background: var(--color-danger-bg) !important;
+      }
+    }
+  }
 }
 </style>

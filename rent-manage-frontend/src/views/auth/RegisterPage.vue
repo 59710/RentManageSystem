@@ -1,20 +1,23 @@
 <template>
   <div class="register-page">
-    <div class="register-bg">
-      <div class="bg-circle circle-1"></div>
-      <div class="bg-circle circle-2"></div>
+    <!-- 背景装饰 -->
+    <div class="bg-decor">
+      <div class="bg-blob bg-blob-1"></div>
+      <div class="bg-blob bg-blob-2"></div>
+      <div class="bg-grid"></div>
     </div>
 
-    <div class="register-container fade-in-up">
-      <!-- 左侧装饰 -->
+    <div class="register-container scale-in">
+      <!-- 左侧品牌区 -->
       <div class="register-brand">
-        <span class="brand-icon">✨</span>
+        <div class="brand-glow"></div>
+        <span class="brand-emoji">✨</span>
         <h2>加入我们</h2>
         <p>开启品质租房新体验</p>
       </div>
 
       <!-- 注册表单 -->
-      <div class="form-wrapper">
+      <div class="register-form-wrap">
         <h3>创建账号</h3>
 
         <el-form
@@ -25,28 +28,21 @@
           label-position="top"
           @submit.prevent="handleRegister"
         >
-          <el-form-item prop="nickname" label="昵称">
-            <el-input
-              v-model="form.nickname"
-              placeholder="请输入您的昵称"
-              :prefix-icon="User"
-            />
-          </el-form-item>
-
-          <el-form-item prop="realName" label="真实姓名">
-            <el-input
-              v-model="form.realName"
-              placeholder="请输入真实姓名（选填）"
-              :prefix-icon="User"
-            />
-          </el-form-item>
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item prop="nickname" label="昵称">
+                <el-input v-model="form.nickname" placeholder="您的昵称" :prefix-icon="User" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="realName" label="真实姓名">
+                <el-input v-model="form.realName" placeholder="真实姓名（选填）" :prefix-icon="User" />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
           <el-form-item prop="email" label="邮箱">
-            <el-input
-              v-model="form.email"
-              placeholder="请输入邮箱（选填）"
-              :prefix-icon="Message"
-            />
+            <el-input v-model="form.email" placeholder="请输入邮箱（选填）" :prefix-icon="Message" />
           </el-form-item>
 
           <el-form-item prop="gender" label="性别">
@@ -67,39 +63,44 @@
               @input="checkPhone"
             />
             <transition name="el-fade-in">
-              <span v-if="phoneStatus === 'checking'" class="phone-hint checking">
+              <span v-if="phoneStatus === 'checking'" class="phone-hint hint-checking">
                 <el-icon class="is-loading"><Loading /></el-icon> 正在检查...
               </span>
-              <span v-else-if="phoneStatus === 'available'" class="phone-hint available">
+              <span v-else-if="phoneStatus === 'available'" class="phone-hint hint-ok">
                 <el-icon><CircleCheckFilled /></el-icon> 手机号可用
               </span>
-              <span v-else-if="phoneStatus === 'exists'" class="phone-hint exists">
+              <span v-else-if="phoneStatus === 'exists'" class="phone-hint hint-bad">
                 <el-icon><WarningFilled /></el-icon> 该手机号已注册，
-                <router-link to="/login" class="link-login">去登录 →</router-link>
+                <router-link to="/login" class="link-login">去登录</router-link>
               </span>
             </transition>
           </el-form-item>
 
-          <el-form-item prop="password" label="密码">
-            <el-input
-              v-model="form.password"
-              type="password"
-              placeholder="8-20位，包含字母和数字"
-              :prefix-icon="Lock"
-              show-password
-            />
-          </el-form-item>
-
-          <el-form-item prop="confirmPassword" label="确认密码">
-            <el-input
-              v-model="form.confirmPassword"
-              type="password"
-              placeholder="再次输入密码"
-              :prefix-icon="Lock"
-              show-password
-              @keyup.enter="handleRegister"
-            />
-          </el-form-item>
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item prop="password" label="密码">
+                <el-input
+                  v-model="form.password"
+                  type="password"
+                  placeholder="8-20位，包含字母和数字"
+                  :prefix-icon="Lock"
+                  show-password
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item prop="confirmPassword" label="确认密码">
+                <el-input
+                  v-model="form.confirmPassword"
+                  type="password"
+                  placeholder="再次输入密码"
+                  :prefix-icon="Lock"
+                  show-password
+                  @keyup.enter="handleRegister"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
           <el-form-item prop="role" label="注册身份">
             <el-radio-group v-model="form.role" size="large">
@@ -120,8 +121,9 @@
 
         <div class="form-footer">
           <span>已有账号？</span>
-          <router-link to="/login" class="link-primary">
-            ← 返回登录
+          <router-link to="/login" class="link">
+            <el-icon :size="14"><ArrowLeft /></el-icon>
+            返回登录
           </router-link>
         </div>
       </div>
@@ -133,7 +135,10 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { User, Iphone, Lock, Loading, CircleCheckFilled, WarningFilled, Message } from '@element-plus/icons-vue'
+import {
+  User, Iphone, Lock, Loading, CircleCheckFilled,
+  WarningFilled, Message, ArrowLeft,
+} from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -143,8 +148,6 @@ const userStore = useUserStore()
 
 const formRef = ref<FormInstance>()
 const loading = ref(false)
-
-// 手机号检查状态：'' | 'checking' | 'exists' | 'available'
 const phoneStatus = ref('')
 let checkTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -161,15 +164,11 @@ const form = reactive({
 
 async function checkPhone() {
   const phone = form.phone.trim()
-
-  // 格式不对时清除状态
   if (!/^1[3-9]\d{9}$/.test(phone)) {
     phoneStatus.value = ''
     if (checkTimer) clearTimeout(checkTimer)
     return
   }
-
-  // 防抖 500ms
   if (checkTimer) clearTimeout(checkTimer)
   phoneStatus.value = 'checking'
   checkTimer = setTimeout(async () => {
@@ -182,7 +181,6 @@ async function checkPhone() {
   }, 500)
 }
 
-// 确认密码校验
 const confirmPassValidator = (_rule: any, value: string, callback: any) => {
   if (value !== form.password) {
     callback(new Error('两次输入的密码不一致'))
@@ -191,12 +189,10 @@ const confirmPassValidator = (_rule: any, value: string, callback: any) => {
   }
 }
 
-// 手机号已注册校验
 const phoneExistsValidator = (_rule: any, _value: string, callback: any) => {
   if (phoneStatus.value === 'exists') {
     callback(new Error('该手机号已注册'))
   } else {
-    // checking / available / 空白 → 不阻止，下方 hint 已展示状态
     callback()
   }
 }
@@ -206,30 +202,16 @@ const rules: FormRules = {
     { required: true, message: '请输入昵称', trigger: 'blur' },
     { min: 2, max: 50, message: '昵称长度为2-50位', trigger: 'blur' },
   ],
-  email: [
-    {
-      type: 'email',
-      message: '邮箱格式不正确',
-      trigger: 'blur',
-    },
-  ],
+  email: [{ type: 'email', message: '邮箱格式不正确', trigger: 'blur' }],
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
-    {
-      pattern: /^1[3-9]\d{9}$/,
-      message: '手机号格式不正确',
-      trigger: 'blur',
-    },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
     { validator: phoneExistsValidator, trigger: 'blur' },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },
-    {
-      pattern: /^(?=.*[A-Za-z])(?=.*\d).+$/,
-      message: '密码必须包含字母和数字',
-      trigger: 'blur',
-    },
+    { pattern: /^(?=.*[A-Za-z])(?=.*\d).+$/, message: '密码必须包含字母和数字', trigger: 'blur' },
   ],
   confirmPassword: [
     { required: true, message: '请确认密码', trigger: 'blur' },
@@ -239,8 +221,6 @@ const rules: FormRules = {
 
 async function handleRegister() {
   if (!formRef.value) return
-
-  // 手机号仍在检查中或已注册，阻止提交
   if (phoneStatus.value === 'checking') {
     ElMessage.warning('正在检查手机号，请稍候再试')
     return
@@ -249,10 +229,8 @@ async function handleRegister() {
     ElMessage.warning('该手机号已注册，请更换手机号')
     return
   }
-
   await formRef.value.validate(async (valid) => {
     if (!valid) return
-
     loading.value = true
     try {
       await userStore.register({
@@ -264,10 +242,10 @@ async function handleRegister() {
         password: form.password,
         role: form.role,
       })
-      ElMessage.success('注册成功！欢迎加入青年品质租房 🎉')
+      ElMessage.success('注册成功！欢迎加入青年品质租房')
       router.push({ name: 'Login', query: { phone: form.phone } })
     } catch (err) {
-      // 错误已在拦截器中处理
+      // handled by interceptor
     } finally {
       loading.value = false
     }
@@ -281,96 +259,143 @@ async function handleRegister() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: #0f172a;
 }
 
-.register-bg {
+// 背景装饰
+.bg-decor {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  overflow: hidden;
+}
 
-  .bg-circle {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-  }
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
 
-  .circle-1 {
+  &.bg-blob-1 {
     width: 500px;
     height: 500px;
-    top: -150px;
+    top: -200px;
     left: -100px;
+    background: #3b82f6;
     animation: float 12s ease-in-out infinite;
   }
 
-  .circle-2 {
-    width: 250px;
-    height: 250px;
-    bottom: -60px;
-    right: -40px;
-    animation: float 9s ease-in-out infinite reverse;
+  &.bg-blob-2 {
+    width: 350px;
+    height: 350px;
+    bottom: -120px;
+    right: -80px;
+    background: #10b981;
+    animation: float 10s ease-in-out infinite reverse;
   }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-25px) rotate(5deg); }
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-24px) rotate(3deg); }
+}
+
+// 注册卡片
 .register-container {
   display: flex;
-  width: 780px;
+  width: 800px;
   max-width: 95vw;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(40px);
+  background: rgba(255, 255, 255, 0.97);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg), 0 25px 80px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   position: relative;
   z-index: 1;
 }
 
+// 左侧品牌区
 .register-brand {
-  width: 280px;
-  padding: 48px 32px;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  flex: 0 0 260px;
+  background: linear-gradient(160deg, #3b82f6 0%, #2563eb 40%, #1d4ed8 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
 
-  .brand-icon {
-    font-size: 56px;
+  .brand-glow {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    filter: blur(40px);
+    top: -40px;
+    right: -40px;
+  }
+
+  .brand-emoji {
+    font-size: 48px;
     margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
   }
 
   h2 {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 800;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
   }
 
   p {
-    font-size: 14px;
-    opacity: 0.9;
+    font-size: 13px;
+    opacity: 0.85;
+    position: relative;
+    z-index: 1;
     text-align: center;
+    padding: 0 20px;
   }
 }
 
-.form-wrapper {
+// 表单区
+.register-form-wrap {
   flex: 1;
-  padding: 48px;
+  padding: 36px 40px;
   overflow-y: auto;
+  max-height: 80vh;
 
   h3 {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 24px;
-    color: var(--color-text);
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 20px;
+    letter-spacing: -0.02em;
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 16px;
+
+    .el-form-item__label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      padding-bottom: 4px;
+    }
   }
 }
 
@@ -378,18 +403,21 @@ async function handleRegister() {
   width: 100%;
   height: 46px !important;
   font-size: 16px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3em;
   border-radius: var(--radius-sm) !important;
-  letter-spacing: 4px;
-  transition: all var(--transition-normal) !important;
-  margin-top: 8px;
+  background: linear-gradient(135deg, #3b82f6, #60a5fa) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  margin-top: 4px;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(79, 172, 254, 0.35) !important;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4) !important;
   }
 }
 
+// 手机号状态提示
 .phone-hint {
   display: inline-flex;
   align-items: center;
@@ -397,38 +425,34 @@ async function handleRegister() {
   font-size: 12px;
   margin-top: 4px;
 
-  .el-icon {
-    font-size: 14px;
-  }
+  .el-icon { font-size: 14px; }
 
-  &.checking {
-    color: #909399;
-  }
+  &.hint-checking { color: #909399; }
+  &.hint-ok { color: #10b981; }
+  &.hint-bad { color: #ef4444; }
 
-  &.available {
-    color: #67c23a;
+  .link-login {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
   }
-
-  &.exists {
-    color: #f56c6c;
-  }
-}
-
-.link-login {
-  color: var(--color-primary, #409eff);
-  font-weight: 600;
-  text-decoration: underline;
 }
 
 .form-footer {
   text-align: center;
   margin-top: 20px;
+  font-size: 14px;
   color: var(--color-text-secondary);
 
-  .link-primary {
-    color: var(--color-info);
+  .link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #3b82f6;
     font-weight: 600;
     margin-left: 4px;
+
+    &:hover { text-decoration: underline; }
   }
 }
 </style>
